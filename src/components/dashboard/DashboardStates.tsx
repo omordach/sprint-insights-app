@@ -1,4 +1,5 @@
 import { Loader2, AlertCircle, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function LoadingState() {
   return (
@@ -24,13 +25,22 @@ export function ErrorState({ message }: { message: string }) {
   );
 }
 
-export function EmptyState() {
+export function EmptyState({ onClearFilters }: { onClearFilters?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <BarChart3 className="h-8 w-8 text-muted-foreground" />
-      <div className="text-center">
-        <p className="text-sm font-display font-semibold text-foreground">No Data Found</p>
-        <p className="text-xs text-muted-foreground mt-1">No issues match the current filters.</p>
+      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+        <BarChart3 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+      </div>
+      <div className="text-center max-w-sm">
+        <p className="text-base font-display font-semibold text-foreground">No matches found</p>
+        <p className="text-sm text-muted-foreground mt-1 mb-4">
+          We couldn't find any issues matching your current filters. Try adjusting or clearing them to see more results.
+        </p>
+        {onClearFilters && (
+          <Button variant="outline" size="sm" onClick={onClearFilters}>
+            Clear all filters
+          </Button>
+        )}
       </div>
     </div>
   );
