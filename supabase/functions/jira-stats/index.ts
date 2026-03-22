@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 const JIRA_BASE_URL = 'https://unionimpact.atlassian.net';
-const JIRA_EMAIL = 'oleh@get-code.net';
+
 const PROJECT_KEY = 'UIV4';
 
 // Simple in-memory cache
@@ -23,8 +23,8 @@ function setCache(key: string, data: unknown) {
   cache.set(key, { data, timestamp: Date.now() });
 }
 
-async function jiraFetch(path: string, token: string) {
-  const auth = btoa(`${JIRA_EMAIL}:${token}`);
+async function jiraFetch(path: string, token: string, email: string) {
+  const auth = btoa(`${email}:${token}`);
   const res = await fetch(`${JIRA_BASE_URL}${path}`, {
     headers: {
       'Authorization': `Basic ${auth}`,
@@ -40,7 +40,7 @@ async function jiraFetch(path: string, token: string) {
   return res.json();
 }
 
-async function fetchAllIssues(token: string, year: number) {
+async function fetchAllIssues(token: string, email: string, year: number) {
   const cacheKey = `issues_${year}`;
   const cached = getCached(cacheKey);
   if (cached) return cached as any[];
@@ -60,7 +60,7 @@ async function fetchAllIssues(token: string, year: number) {
       url += `&nextPageToken=${encodeURIComponent(nextPageToken)}`;
     }
     
-    const data = await jiraFetch(url.replace(JIRA_BASE_URL, ''), token);
+    const data = await jiraFetch(url.replace(JIRA_BASE_URL, ''), token, email);
     
     for (const issue of data.issues || []) {
       if (!seenKeys.has(issue.key)) {
@@ -77,7 +77,7 @@ async function fetchAllIssues(token: string, year: number) {
   return allIssues;
 }
 
-async function fetchSprints(token: string) {
+async function fetchSprints(token: string, email: string) {
   const cached = getCached('sprints');
   if (cached) return cached as any[];
 
@@ -85,7 +85,8 @@ async function fetchSprints(token: string) {
   try {
     const boardData = await jiraFetch(
       `/rest/agile/1.0/board?projectKeyOrId=${PROJECT_KEY}`,
-      token
+      token,
+      email
     );
     if (!boardData.values || boardData.values.length === 0) {
       setCache('sprints', []);
@@ -95,7 +96,8 @@ async function fetchSprints(token: string) {
     
     const sprintData = await jiraFetch(
       `/rest/agile/1.0/board/${boardId}/sprint?maxResults=100`,
-      token
+      token,
+      email
     );
     const sprints = sprintData.values || [];
     setCache('sprints', sprints);
@@ -244,8 +246,9 @@ serve(async (req) => {
 
   try {
     const token = Deno.env.get('JIRA_API_TOKEN');
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'JIRA_API_TOKEN not configured' }), {
+    const email = Deno.env.get('JIRA_EMAIL');
+    if (!token || !email) {
+      return new Response(JSON.stringify({ error: 'JIRA_API_TOKEN or JIRA_EMAIL not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -261,8 +264,8 @@ serve(async (req) => {
     }
 
     const [issues, sprintsList] = await Promise.all([
-      fetchAllIssues(token, year),
-      fetchSprints(token),
+      fetchAllIssues(token, email, year),
+      fetchSprints(token, email),
     ]);
 
     const result = aggregateStats(issues, year);
