@@ -17,16 +17,20 @@ interface FilterBarProps {
   onYearChange: (year: number) => void;
 }
 
-function MultiSelectFilter({
+// ⚡ Bolt: Wrapped MultiSelectFilter in React.memo to prevent unnecessary re-renders.
+// Expected Impact: Prevents re-rendering all select components when parent FilterBar re-renders (e.g., when isFetching changes or another filter is updated).
+const MultiSelectFilter = memo(function MultiSelectFilter({
   label,
+  filterKey,
   options,
   selected,
-  onSelect,
+  onFilterChange,
 }: {
   label: string;
+  filterKey: keyof DashboardFilters;
   options: string[];
   selected: string[];
-  onSelect: (values: string[]) => void;
+  onFilterChange: (key: keyof DashboardFilters, values: string[]) => void;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -37,11 +41,11 @@ function MultiSelectFilter({
         value={selected.length === 1 ? selected[0] : undefined}
         onValueChange={(val) => {
           if (val === "__all__") {
-            onSelect([]);
+            onFilterChange(filterKey, []);
           } else if (selected.includes(val)) {
-            onSelect(selected.filter((s) => s !== val));
+            onFilterChange(filterKey, selected.filter((s) => s !== val));
           } else {
-            onSelect([...selected, val]);
+            onFilterChange(filterKey, [...selected, val]);
           }
         }}
       >
@@ -67,11 +71,11 @@ function MultiSelectFilter({
               tabIndex={0}
               aria-label={`Remove ${s} filter`}
               className="text-xs cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-              onClick={() => onSelect(selected.filter((v) => v !== s))}
+              onClick={() => onFilterChange(filterKey, selected.filter((v) => v !== s))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onSelect(selected.filter((v) => v !== s));
+                  onFilterChange(filterKey, selected.filter((v) => v !== s));
                 }
               }}
             >
@@ -82,7 +86,7 @@ function MultiSelectFilter({
       )}
     </div>
   );
-}
+});
 
 // ⚡ Bolt: Wrapped FilterBar in React.memo to prevent unnecessary re-renders.
 // Expected Impact: Prevents re-rendering all select components when parent isFetching changes.
@@ -122,27 +126,31 @@ export const FilterBar = memo(function FilterBar({
 
         <MultiSelectFilter
           label="Sprint"
+          filterKey="sprint"
           options={sprints}
           selected={filters.sprint}
-          onSelect={(v) => onFilterChange("sprint", v)}
+          onFilterChange={onFilterChange}
         />
         <MultiSelectFilter
           label="User"
+          filterKey="user"
           options={users}
           selected={filters.user}
-          onSelect={(v) => onFilterChange("user", v)}
+          onFilterChange={onFilterChange}
         />
         <MultiSelectFilter
           label="Issue Type"
+          filterKey="issueType"
           options={issueTypes}
           selected={filters.issueType}
-          onSelect={(v) => onFilterChange("issueType", v)}
+          onFilterChange={onFilterChange}
         />
         <MultiSelectFilter
           label="Status"
+          filterKey="status"
           options={statuses}
           selected={filters.status}
-          onSelect={(v) => onFilterChange("status", v)}
+          onFilterChange={onFilterChange}
         />
 
         {hasFilters && (
