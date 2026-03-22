@@ -1,0 +1,4 @@
+project_id = "zdurwonuraranefffefh"
+
+[functions.jira-stats]
+verify_jwt = false

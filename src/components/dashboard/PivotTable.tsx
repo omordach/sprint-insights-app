@@ -37,6 +37,7 @@ export function PivotTable({ rows, users, sprints }: PivotTableProps) {
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  // Build lookup: sprint -> user -> metrics
   const lookup = useMemo(() => {
     const map: Record<string, Record<string, JiraStatRow>> = {};
     for (const r of rows) {
@@ -74,6 +75,7 @@ export function PivotTable({ rows, users, sprints }: PivotTableProps) {
     return sorted;
   }, [sprints, sortBy, sortDir, lookup, selectedMetric]);
 
+  // Column totals
   const columnTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     for (const user of displayUsers) {
@@ -85,6 +87,7 @@ export function PivotTable({ rows, users, sprints }: PivotTableProps) {
     return totals;
   }, [displayUsers, sprints, lookup, selectedMetric]);
 
+  // Row totals
   const rowTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     for (const sprint of sprints) {
@@ -133,39 +136,43 @@ export function PivotTable({ rows, users, sprints }: PivotTableProps) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <div>
-          <h3 className="text-sm font-semibold">Pivot Table</h3>
-          <p className="text-xs text-muted-foreground">Sprint × User</p>
+    <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-display font-semibold text-card-foreground">Pivot Table</h3>
+          <span className="text-xs text-muted-foreground">Sprint × User</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {METRICS.map((m) => (
-            <Button
-              key={m.key}
-              variant={selectedMetric === m.key ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedMetric(m.key)}
-            >
-              {m.label}
-            </Button>
-          ))}
-          <Button variant="outline" size="sm" onClick={exportCsv}>
-            <Download className="h-4 w-4 mr-1" />
-            CSV
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 flex-wrap">
+            {METRICS.map((m) => (
+              <Button
+                key={m.key}
+                variant={selectedMetric === m.key ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-7"
+                onClick={() => setSelectedMetric(m.key)}
+              >
+                {m.label}
+              </Button>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" className="h-7" onClick={exportCsv}>
+            <Download className="h-3 w-3 mr-1" /> CSV
           </Button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border">
-              <th className="text-left p-2 font-medium text-muted-foreground">Sprint</th>
+            <tr className="bg-muted">
+              <th className="text-left px-3 py-2 text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 bg-muted z-10">
+                Sprint
+              </th>
               {displayUsers.map((user) => (
                 <th
                   key={user}
-                  className="text-right p-2 font-medium text-muted-foreground cursor-pointer hover:text-foreground"
+                  className="px-3 py-2 text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort(user)}
                 >
                   <span className="inline-flex items-center gap-1">
@@ -174,36 +181,47 @@ export function PivotTable({ rows, users, sprints }: PivotTableProps) {
                   </span>
                 </th>
               ))}
-              <th className="text-right p-2 font-medium text-muted-foreground">Total</th>
+              <th className="px-3 py-2 text-xs font-display font-semibold text-primary uppercase tracking-wider">
+                Total
+              </th>
             </tr>
           </thead>
           <tbody>
             {displaySprints.map((sprint, i) => (
-              <tr key={sprint} className={i % 2 === 0 ? "bg-muted/30" : ""}>
-                <td className="p-2 font-medium">{sprint}</td>
+              <tr
+                key={sprint}
+                className={`border-t border-border ${i % 2 === 0 ? "" : "bg-muted/30"} hover:bg-accent/50 transition-colors`}
+              >
+                <td className="px-3 py-2 font-medium text-card-foreground sticky left-0 bg-card z-10 border-r border-border">
+                  {sprint}
+                </td>
                 {displayUsers.map((user) => {
                   const val = lookup[sprint]?.[user]?.[selectedMetric] || 0;
                   return (
-                    <td key={user} className={`text-right p-2 ${cellClass(val)}`}>
+                    <td key={user} className={`px-3 py-2 text-center ${cellClass(val)}`}>
                       {formatValue(selectedMetric, val)}
                     </td>
                   );
                 })}
-                <td className="text-right p-2 font-semibold">
+                <td className="px-3 py-2 text-center font-semibold text-primary border-l border-border">
                   {formatValue(selectedMetric, rowTotals[sprint])}
                 </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t border-border font-semibold">
-              <td className="p-2">Total</td>
+            <tr className="border-t-2 border-primary bg-accent/30">
+              <td className="px-3 py-2 font-display font-semibold text-card-foreground sticky left-0 bg-accent/30 z-10">
+                Total
+              </td>
               {displayUsers.map((user) => (
-                <td key={user} className="text-right p-2">
+                <td key={user} className="px-3 py-2 text-center font-semibold text-primary">
                   {formatValue(selectedMetric, columnTotals[user])}
                 </td>
               ))}
-              <td className="text-right p-2">{formatValue(selectedMetric, grandTotal)}</td>
+              <td className="px-3 py-2 text-center font-bold text-primary border-l border-border">
+                {formatValue(selectedMetric, grandTotal)}
+              </td>
             </tr>
           </tfoot>
         </table>

@@ -3,7 +3,6 @@ import { useJiraStats } from "@/hooks/useJiraStats";
 import { useDashboardFilters } from "@/hooks/useDashboardFilters";
 import { FilterBar } from "@/components/dashboard/FilterBar";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
-import { PivotTable } from "@/components/dashboard/PivotTable";
 import { LoadingState, ErrorState, EmptyState } from "@/components/dashboard/DashboardStates";
 import { BarChart3, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,28 +16,38 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+      <header className="border-b border-border bg-card sticky top-0 z-20">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BarChart3 className="h-6 w-6 text-primary" />
             <div>
-              <h1 className="text-lg font-semibold leading-tight">Sprint Insights</h1>
-              <p className="text-xs text-muted-foreground">Jira Analytics Dashboard</p>
+              <h1 className="text-lg font-display font-bold text-foreground tracking-tight">
+                Jira Analytics
+              </h1>
+              <p className="text-xs text-muted-foreground">UIV4 · {year} Team Activity</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw className={`h-4 w-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {data && (
+              <span className="text-xs text-muted-foreground font-display">
+                {data.totalIssues} issues
+              </span>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="h-8"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${isFetching ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {data && (
           <FilterBar
             sprints={data.sprints}
@@ -58,10 +67,7 @@ const Index = () => {
         {data && filteredRows.length === 0 && !isLoading && <EmptyState />}
 
         {data && filteredRows.length > 0 && (
-          <>
-            <DashboardCharts rows={filteredRows} />
-            <PivotTable rows={filteredRows} users={data.users} sprints={data.sprints} />
-          </>
+          <DashboardCharts rows={filteredRows} />
         )}
       </main>
     </div>

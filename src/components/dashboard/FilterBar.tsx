@@ -29,9 +29,12 @@ function MultiSelectFilter({
   onSelect: (values: string[]) => void;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-muted-foreground font-display uppercase tracking-wider">
+        {label}
+      </label>
       <Select
+        value={selected.length === 1 ? selected[0] : undefined}
         onValueChange={(val) => {
           if (val === "__all__") {
             onSelect([]);
@@ -42,7 +45,7 @@ function MultiSelectFilter({
           }
         }}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px] bg-card text-card-foreground border-border">
           <SelectValue placeholder={`All ${label}`} />
         </SelectTrigger>
         <SelectContent>
@@ -55,14 +58,15 @@ function MultiSelectFilter({
         </SelectContent>
       </Select>
       {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1">
+        <div className="flex flex-wrap gap-1">
           {selected.map((s) => (
             <Badge
               key={s}
               variant="secondary"
-              className="cursor-pointer text-xs"
               role="button"
               tabIndex={0}
+              aria-label={`Remove ${s} filter`}
+              className="text-xs cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
               onClick={() => onSelect(selected.filter((v) => v !== s))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -71,7 +75,7 @@ function MultiSelectFilter({
                 }
               }}
             >
-              {s} <X className="ml-1 h-3 w-3" />
+              {s} <X className="ml-1 h-3 w-3" aria-hidden="true" />
             </Badge>
           ))}
         </div>
@@ -80,6 +84,8 @@ function MultiSelectFilter({
   );
 }
 
+// ⚡ Bolt: Wrapped FilterBar in React.memo to prevent unnecessary re-renders.
+// Expected Impact: Prevents re-rendering all select components when parent isFetching changes.
 export const FilterBar = memo(function FilterBar({
   sprints,
   users,
@@ -96,10 +102,12 @@ export const FilterBar = memo(function FilterBar({
   return (
     <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
       <div className="flex flex-wrap items-end gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted-foreground">Year</span>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-muted-foreground font-display uppercase tracking-wider">
+            Year
+          </label>
           <Select value={String(year)} onValueChange={(v) => onYearChange(Number(v))}>
-            <SelectTrigger className="w-[100px]">
+            <SelectTrigger className="w-[100px] bg-card text-card-foreground border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -138,8 +146,8 @@ export const FilterBar = memo(function FilterBar({
         />
 
         {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={onClear}>
-            Clear
+          <Button variant="ghost" size="sm" onClick={onClear} className="text-muted-foreground">
+            <X className="mr-1 h-4 w-4" /> Clear
           </Button>
         )}
       </div>

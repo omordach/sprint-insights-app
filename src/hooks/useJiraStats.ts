@@ -15,12 +15,12 @@ export function useJiraStats(year: number) {
           },
         }
       );
-
+      
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(err.error || 'Failed to fetch Jira stats');
       }
-
+      
       return res.json();
     },
     staleTime: 10 * 60 * 1000,

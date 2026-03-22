@@ -18,10 +18,14 @@ export function useDashboardFilters(rows: JiraStatRow[]) {
     });
   }, [rows, filters]);
 
+  // ⚡ Bolt: Memoized updateFilter with useCallback.
+  // Expected Impact: Maintains referential equality so child components (FilterBar) do not re-render unnecessarily.
   const updateFilter = useCallback((key: keyof DashboardFilters, values: string[]) => {
     setFilters((prev) => ({ ...prev, [key]: values }));
   }, []);
 
+  // ⚡ Bolt: Memoized clearFilters with useCallback.
+  // Expected Impact: Maintains referential equality so child components do not re-render unnecessarily.
   const clearFilters = useCallback(() => {
     setFilters({ sprint: [], month: [], user: [], issueType: [], status: [] });
   }, []);
