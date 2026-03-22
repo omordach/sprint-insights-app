@@ -64,7 +64,7 @@ const Index = () => {
 
         {isLoading && <LoadingState />}
         {error && <ErrorState message={(error as Error).message} />}
-        {data && filteredRows.length === 0 && !isLoading && <EmptyState />}
+        {data && filteredRows.length === 0 && !isLoading && <EmptyState onClearFilters={clearFilters} />}
 
         {data && filteredRows.length > 0 && (
           <DashboardCharts rows={filteredRows} />
