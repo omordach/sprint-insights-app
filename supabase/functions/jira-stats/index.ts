@@ -244,6 +244,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const token = Deno.env.get('JIRA_API_TOKEN');
     const email = Deno.env.get('JIRA_EMAIL');
@@ -255,13 +262,18 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const year = parseInt(url.searchParams.get('year') || '2026', 10);
-    const fresh = url.searchParams.get('fresh') === '1';
+    const yearParam = url.searchParams.get('year') || '2026';
+    const year = parseInt(yearParam, 10);
     
-    // Allow cache-busting
-    if (fresh) {
-      cache.clear();
+    // Input validation for year parameter to prevent arbitrary queries and unbounded cache growth
+    if (isNaN(year) || year < 2000 || year > 2100) {
+      return new Response(JSON.stringify({ error: 'Invalid year parameter' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    // Removed the unauthenticated 'fresh=1' cache bypass to prevent DoS via cache exhaustion
 
     const [issues, sprintsList] = await Promise.all([
       fetchAllIssues(token, email, year),
