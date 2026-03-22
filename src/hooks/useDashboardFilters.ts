@@ -14,6 +14,8 @@ export function useDashboardFilters(rows: JiraStatRow[]) {
     return rows.filter((row) => {
       if (filters.sprint.length > 0 && !filters.sprint.includes(row.sprint)) return false;
       if (filters.user.length > 0 && !filters.user.includes(row.user)) return false;
+      if (filters.issueType.length > 0 && !filters.issueType.includes(row.issueType)) return false;
+      if (filters.status.length > 0 && !filters.status.includes(row.status)) return false;
       return true;
     });
   }, [rows, filters]);
