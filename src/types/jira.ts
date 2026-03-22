@@ -1,6 +1,8 @@
 export interface JiraStatRow {
   sprint: string;
   user: string;
+  issueType: string;
+  status: string;
   issuesCreated: number;
   issuesUpdated: number;
   issuesAssigned: number;
@@ -15,7 +17,7 @@ export interface JiraStatsResponse {
   sprints: string[];
   issueTypes: string[];
   statuses: string[];
-  sprintDetails: any[];
+  sprintDetails: unknown[];
   totalIssues: number;
   year: number;
 }

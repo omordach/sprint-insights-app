@@ -129,14 +129,14 @@ function extractSprintName(issue: any): string {
 }
 
 function aggregateStats(issues: any[], year: number) {
-  const stats: Record<string, Record<string, {
+  const stats: Record<string, Record<string, Record<string, Record<string, {
     issuesCreated: number;
     issuesUpdated: number;
     issuesAssigned: number;
     issuesCommented: number;
     commentsCount: number;
     timeLoggedSeconds: number;
-  }>> = {};
+  }>>>> = {};
 
   const users = new Set<string>();
   const sprints = new Set<string>();
@@ -160,10 +160,12 @@ function aggregateStats(issues: any[], year: number) {
     if (assigneeName !== 'Unassigned') users.add(assigneeName);
 
     // Ensure sprint-user bucket exists
-    const ensure = (sprint: string, user: string) => {
+    const ensure = (sprint: string, user: string, issueType: string, status: string) => {
       if (!stats[sprint]) stats[sprint] = {};
-      if (!stats[sprint][user]) {
-        stats[sprint][user] = {
+      if (!stats[sprint][user]) stats[sprint][user] = {};
+      if (!stats[sprint][user][issueType]) stats[sprint][user][issueType] = {};
+      if (!stats[sprint][user][issueType][status]) {
+        stats[sprint][user][issueType][status] = {
           issuesCreated: 0, issuesUpdated: 0, issuesAssigned: 0,
           issuesCommented: 0, commentsCount: 0, timeLoggedSeconds: 0,
         };
@@ -173,22 +175,22 @@ function aggregateStats(issues: any[], year: number) {
     // Issues Created
     const createdDate = new Date(issue.fields?.created);
     if (createdDate.getFullYear() === year) {
-      ensure(sprintName, creatorName);
-      stats[sprintName][creatorName].issuesCreated++;
+      ensure(sprintName, creatorName, issueType, status);
+      stats[sprintName][creatorName][issueType][status].issuesCreated++;
     }
 
     // Issues Updated (count for all users who appear)
     const updatedDate = new Date(issue.fields?.updated);
     if (updatedDate.getFullYear() === year) {
       // Attribute update to creator as a fallback (changelog would be more accurate but expensive)
-      ensure(sprintName, creatorName);
-      stats[sprintName][creatorName].issuesUpdated++;
+      ensure(sprintName, creatorName, issueType, status);
+      stats[sprintName][creatorName][issueType][status].issuesUpdated++;
     }
 
     // Issues Assigned
     if (assigneeName !== 'Unassigned') {
-      ensure(sprintName, assigneeName);
-      stats[sprintName][assigneeName].issuesAssigned++;
+      ensure(sprintName, assigneeName, issueType, status);
+      stats[sprintName][assigneeName][issueType][status].issuesAssigned++;
     }
 
     // Comments
@@ -199,13 +201,13 @@ function aggregateStats(issues: any[], year: number) {
       if (commentDate.getFullYear() === year) {
         const authorName = comment.author?.displayName || 'Unknown';
         users.add(authorName);
-        ensure(sprintName, authorName);
-        stats[sprintName][authorName].commentsCount++;
+        ensure(sprintName, authorName, issueType, status);
+        stats[sprintName][authorName][issueType][status].commentsCount++;
         commenters.add(authorName);
       }
     }
     for (const commenter of commenters) {
-      stats[sprintName][commenter].issuesCommented++;
+      stats[sprintName][commenter][issueType][status].issuesCommented++;
     }
 
     // Worklogs
@@ -215,8 +217,8 @@ function aggregateStats(issues: any[], year: number) {
       if (wlDate.getFullYear() === year) {
         const authorName = wl.author?.displayName || 'Unknown';
         users.add(authorName);
-        ensure(sprintName, authorName);
-        stats[sprintName][authorName].timeLoggedSeconds += wl.timeSpentSeconds || 0;
+        ensure(sprintName, authorName, issueType, status);
+        stats[sprintName][authorName][issueType][status].timeLoggedSeconds += wl.timeSpentSeconds || 0;
       }
     }
   }
@@ -224,8 +226,12 @@ function aggregateStats(issues: any[], year: number) {
   // Flatten to array
   const rows: any[] = [];
   for (const [sprint, userMap] of Object.entries(stats)) {
-    for (const [user, metrics] of Object.entries(userMap)) {
-      rows.push({ sprint, user, ...metrics });
+    for (const [user, issueTypeMap] of Object.entries(userMap)) {
+      for (const [issueType, statusMap] of Object.entries(issueTypeMap)) {
+        for (const [status, metrics] of Object.entries(statusMap)) {
+          rows.push({ sprint, user, issueType, status, ...metrics });
+        }
+      }
     }
   }
 
