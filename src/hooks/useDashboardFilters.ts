@@ -11,11 +11,24 @@ export function useDashboardFilters(rows: JiraStatRow[]) {
   });
 
   const filteredRows = useMemo(() => {
+    // ⚡ Bolt: Fast-path return if no filters are active (O(1) instead of O(N))
+    const hasFilters = Object.values(filters).some(arr => arr.length > 0);
+    if (!hasFilters) return rows;
+
+    // ⚡ Bolt: Convert filter arrays to Sets for O(1) lookups instead of O(M) Array.includes()
+    // This reduces the filtering complexity from O(N * M) to O(N) where N=rows and M=selected filters
+    const filterSets = {
+      sprint: filters.sprint.length > 0 ? new Set(filters.sprint) : null,
+      user: filters.user.length > 0 ? new Set(filters.user) : null,
+      issueType: filters.issueType.length > 0 ? new Set(filters.issueType) : null,
+      status: filters.status.length > 0 ? new Set(filters.status) : null,
+    };
+
     return rows.filter((row) => {
-      if (filters.sprint.length > 0 && !filters.sprint.includes(row.sprint)) return false;
-      if (filters.user.length > 0 && !filters.user.includes(row.user)) return false;
-      if (filters.issueType.length > 0 && !filters.issueType.includes(row.issueType)) return false;
-      if (filters.status.length > 0 && !filters.status.includes(row.status)) return false;
+      if (filterSets.sprint && !filterSets.sprint.has(row.sprint)) return false;
+      if (filterSets.user && !filterSets.user.has(row.user)) return false;
+      if (filterSets.issueType && !filterSets.issueType.has(row.issueType)) return false;
+      if (filterSets.status && !filterSets.status.has(row.status)) return false;
       return true;
     });
   }, [rows, filters]);

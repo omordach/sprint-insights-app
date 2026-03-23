@@ -7,11 +7,17 @@ import { LoadingState, ErrorState, EmptyState } from "@/components/dashboard/Das
 import { BarChart3, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// ⚡ Bolt: Maintain stable empty array reference to prevent unnecessary hook re-evaluations
+// Expected Impact: Avoids invalidating 'filteredRows' useMemo when 'data' is undefined
+import type { JiraStatRow } from "@/types/jira";
+
+const EMPTY_ARRAY: JiraStatRow[] = [];
+
 const Index = () => {
   const [year, setYear] = useState(2026);
   const { data, isLoading, error, refetch, isFetching } = useJiraStats(year);
 
-  const rows = data?.rows || [];
+  const rows = data?.rows || EMPTY_ARRAY;
   const { filters, filteredRows, updateFilter, clearFilters } = useDashboardFilters(rows);
 
   return (
