@@ -54,17 +54,17 @@ const BAR_MARGIN = { top: 8, right: 20, bottom: 5, left: 5 };
 // ⚡ Bolt: Extracted CustomTooltipScatter outside of DashboardCharts render function.
 // Expected Impact: Prevents React from destroying and recreating the tooltip component DOM
 // on every parent render, significantly improving scatter chart hover performance.
-const CustomTooltipScatter = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: Record<string, unknown> }> }) => {
+const CustomTooltipScatter = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: Record<string, number | string> }> }) => {
     if (active && payload?.length) {
       const d = payload[0].payload;
       return (
         <div className="bg-popover border border-border rounded-md p-2 text-xs shadow-lg">
-          <p className="font-semibold text-popover-foreground">{d.user}</p>
-          <p className="text-muted-foreground">Comments: {d.comments}</p>
+          <p className="font-semibold text-popover-foreground">{String(d.user)}</p>
+          <p className="text-muted-foreground">Comments: {String(d.comments)}</p>
           <p className="text-muted-foreground">
-            Logged: {formatTime(d.timeHours * 3600)}
+            Logged: {formatTime(Number(d.timeHours) * 3600)}
           </p>
-          <p className="text-muted-foreground">Issues Created: {d.created}</p>
+          <p className="text-muted-foreground">Issues Created: {String(d.created)}</p>
         </div>
       );
     }
