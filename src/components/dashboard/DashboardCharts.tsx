@@ -168,6 +168,19 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
     return { data, statusList };
   }, [rows]);
 
+  // Time in Status: total logged hours per status
+  const timeInStatusData = useMemo(() => {
+    const statusMap: Record<string, number> = {};
+    for (const r of rows) {
+      if (r.timeLoggedSeconds > 0) {
+        statusMap[r.status] = (statusMap[r.status] || 0) + r.timeLoggedSeconds / 3600;
+      }
+    }
+    return Object.entries(statusMap)
+      .map(([status, hours]) => ({ status, hours: Math.round(hours * 10) / 10 }))
+      .sort((a, b) => b.hours - a.hours);
+  }, [rows]);
+
   const chartCardClass =
     "bg-card border border-border rounded-lg p-4 shadow-sm";
 
@@ -306,6 +319,29 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
             <YAxis type="category" dataKey="user" width={120} tick={{ fontSize: 10 }} />
             <Tooltip formatter={(v: number) => `${v} comments per issue`} />
             <Bar dataKey="ratio" fill={CHART_COLORS[5]} radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Time in Status */}
+      <div className={chartCardClass}>
+        <h3 className="text-sm font-display font-semibold text-card-foreground mb-1">
+          Time in Status
+        </h3>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Total logged hours by issue status — identify where effort concentrates
+        </p>
+        <ResponsiveContainer width="100%" height={barChartHeight(timeInStatusData.length)}>
+          <BarChart data={timeInStatusData} layout="vertical" margin={BAR_MARGIN}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+            <XAxis type="number" tick={{ fontSize: 11 }} />
+            <YAxis type="category" dataKey="status" width={120} tick={{ fontSize: 10 }} />
+            <Tooltip formatter={(v: number) => `${v}h`} />
+            <Bar dataKey="hours" radius={[0, 4, 4, 0]}>
+              {timeInStatusData.map((_, i) => (
+                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
