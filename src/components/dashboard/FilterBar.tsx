@@ -154,8 +154,8 @@ export const FilterBar = memo(function FilterBar({
         />
 
         {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={onClear} className="text-muted-foreground">
-            <X className="mr-1 h-4 w-4" /> Clear
+          <Button variant="ghost" size="sm" onClick={onClear} className="text-muted-foreground" aria-label="Clear all filters">
+            <X className="mr-1 h-4 w-4" aria-hidden="true" /> Clear
           </Button>
         )}
       </div>
