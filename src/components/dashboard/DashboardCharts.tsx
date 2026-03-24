@@ -168,6 +168,19 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
     return { data, statusList };
   }, [rows]);
 
+  // Time in Status: total logged hours per status
+  const timeInStatusData = useMemo(() => {
+    const statusMap: Record<string, number> = {};
+    for (const r of rows) {
+      if (r.timeLoggedSeconds > 0) {
+        statusMap[r.status] = (statusMap[r.status] || 0) + r.timeLoggedSeconds / 3600;
+      }
+    }
+    return Object.entries(statusMap)
+      .map(([status, hours]) => ({ status, hours: Math.round(hours * 10) / 10 }))
+      .sort((a, b) => b.hours - a.hours);
+  }, [rows]);
+
   const chartCardClass =
     "bg-card border border-border rounded-lg p-4 shadow-sm";
 
