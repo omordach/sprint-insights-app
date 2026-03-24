@@ -11,11 +11,23 @@ export function useDashboardFilters(rows: JiraStatRow[]) {
   });
 
   const filteredRows = useMemo(() => {
+    // ⚡ Bolt: Use Sets for O(1) membership checking instead of O(M) Array.includes
+    // Expected Impact: Reduces filtering complexity from O(N*M) to O(N), significantly improving performance on large datasets.
+    const sprintSet = filters.sprint.length > 0 ? new Set(filters.sprint) : null;
+    const userSet = filters.user.length > 0 ? new Set(filters.user) : null;
+    const issueTypeSet = filters.issueType.length > 0 ? new Set(filters.issueType) : null;
+    const statusSet = filters.status.length > 0 ? new Set(filters.status) : null;
+
+    // ⚡ Bolt: Early return to skip iteration completely when no filters are active
+    if (!sprintSet && !userSet && !issueTypeSet && !statusSet) {
+      return rows;
+    }
+
     return rows.filter((row) => {
-      if (filters.sprint.length > 0 && !filters.sprint.includes(row.sprint)) return false;
-      if (filters.user.length > 0 && !filters.user.includes(row.user)) return false;
-      if (filters.issueType.length > 0 && !filters.issueType.includes(row.issueType)) return false;
-      if (filters.status.length > 0 && !filters.status.includes(row.status)) return false;
+      if (sprintSet && !sprintSet.has(row.sprint)) return false;
+      if (userSet && !userSet.has(row.user)) return false;
+      if (issueTypeSet && !issueTypeSet.has(row.issueType)) return false;
+      if (statusSet && !statusSet.has(row.status)) return false;
       return true;
     });
   }, [rows, filters]);
