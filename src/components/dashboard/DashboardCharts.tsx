@@ -323,6 +323,29 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
         </ResponsiveContainer>
       </div>
 
+      {/* Time in Status */}
+      <div className={chartCardClass}>
+        <h3 className="text-sm font-display font-semibold text-card-foreground mb-1">
+          Time in Status
+        </h3>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Total logged hours by issue status — identify where effort concentrates
+        </p>
+        <ResponsiveContainer width="100%" height={barChartHeight(timeInStatusData.length)}>
+          <BarChart data={timeInStatusData} layout="vertical" margin={BAR_MARGIN}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+            <XAxis type="number" tick={{ fontSize: 11 }} />
+            <YAxis type="category" dataKey="status" width={120} tick={{ fontSize: 10 }} />
+            <Tooltip formatter={(v: number) => `${v}h`} />
+            <Bar dataKey="hours" radius={[0, 4, 4, 0]}>
+              {timeInStatusData.map((_, i) => (
+                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Sprint Delivery Status — PO View */}
       <div className={`${chartCardClass} lg:col-span-2 xl:col-span-3`}>
         <h3 className="text-sm font-display font-semibold text-card-foreground mb-1">
