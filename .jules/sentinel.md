@@ -9,3 +9,7 @@
 1. Always validate query parameters (e.g., `year` must be a valid number within a specific range).
 2. Remove unauthenticated cache bypass mechanisms or protect them with secrets/auth.
 3. Restrict HTTP methods to only what is necessary (e.g., allow only GET and OPTIONS).
+## 2025-03-24 - [CORS Misconfiguration in Supabase Edge Functions]
+**Vulnerability:** Overly permissive CORS `Access-Control-Allow-Origin: *` identified in `supabase/functions/jira-stats/index.ts`.
+**Learning:** Default Supabase templates or initial setups might use wildcard origins for convenience, exposing the API to Cross-Origin Resource Sharing attacks.
+**Prevention:** Always restrict `Access-Control-Allow-Origin` using environment variables (e.g., `Deno.env.get('ALLOWED_ORIGIN')`) with a secure fallback for local development.

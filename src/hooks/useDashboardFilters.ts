@@ -11,24 +11,23 @@ export function useDashboardFilters(rows: JiraStatRow[]) {
   });
 
   const filteredRows = useMemo(() => {
-    // ⚡ Bolt: Fast-path return if no filters are active (O(1) instead of O(N))
-    const hasFilters = Object.values(filters).some(arr => arr.length > 0);
-    if (!hasFilters) return rows;
+    // ⚡ Bolt: Use Sets for O(1) membership checking instead of O(M) Array.includes
+    // Expected Impact: Reduces filtering complexity from O(N*M) to O(N), significantly improving performance on large datasets.
+    const sprintSet = filters.sprint.length > 0 ? new Set(filters.sprint) : null;
+    const userSet = filters.user.length > 0 ? new Set(filters.user) : null;
+    const issueTypeSet = filters.issueType.length > 0 ? new Set(filters.issueType) : null;
+    const statusSet = filters.status.length > 0 ? new Set(filters.status) : null;
 
-    // ⚡ Bolt: Convert filter arrays to Sets for O(1) lookups instead of O(M) Array.includes()
-    // This reduces the filtering complexity from O(N * M) to O(N) where N=rows and M=selected filters
-    const filterSets = {
-      sprint: filters.sprint.length > 0 ? new Set(filters.sprint) : null,
-      user: filters.user.length > 0 ? new Set(filters.user) : null,
-      issueType: filters.issueType.length > 0 ? new Set(filters.issueType) : null,
-      status: filters.status.length > 0 ? new Set(filters.status) : null,
-    };
+    // ⚡ Bolt: Early return to skip iteration completely when no filters are active
+    if (!sprintSet && !userSet && !issueTypeSet && !statusSet) {
+      return rows;
+    }
 
     return rows.filter((row) => {
-      if (filterSets.sprint && !filterSets.sprint.has(row.sprint)) return false;
-      if (filterSets.user && !filterSets.user.has(row.user)) return false;
-      if (filterSets.issueType && !filterSets.issueType.has(row.issueType)) return false;
-      if (filterSets.status && !filterSets.status.has(row.status)) return false;
+      if (sprintSet && !sprintSet.has(row.sprint)) return false;
+      if (userSet && !userSet.has(row.user)) return false;
+      if (issueTypeSet && !issueTypeSet.has(row.issueType)) return false;
+      if (statusSet && !statusSet.has(row.status)) return false;
       return true;
     });
   }, [rows, filters]);
