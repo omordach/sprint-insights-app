@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 
 export function LoadingState() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4" role="status" aria-live="polite">
+
+    <div
+      className="flex flex-col items-center justify-center min-h-[400px] gap-4"
+      role="status"
+      aria-live="polite"
+    >
+
       <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
       <div className="text-center">
         <p className="text-sm font-display font-semibold text-foreground">Fetching Jira Data</p>
@@ -15,7 +21,13 @@ export function LoadingState() {
 
 export function ErrorState({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4" role="alert" aria-live="assertive">
+
+    <div
+      className="flex flex-col items-center justify-center min-h-[400px] gap-4"
+      role="alert"
+      aria-live="assertive"
+    >
+
       <AlertCircle className="h-8 w-8 text-destructive" aria-hidden="true" />
       <div className="text-center">
         <p className="text-sm font-display font-semibold text-foreground">Failed to Load Data</p>
