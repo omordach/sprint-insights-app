@@ -12,6 +12,7 @@ import {
   ScatterChart,
   Scatter,
   ZAxis,
+  Legend,
 } from "recharts";
 import type { JiraStatRow } from "@/types/jira";
 import { formatTimeDecimal as formatTime } from "@/lib/utils";
