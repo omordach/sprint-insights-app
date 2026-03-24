@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Download } from "lucide-react";
 import type { JiraStatRow } from "@/types/jira";
+import { formatTime } from "@/lib/utils";
 
 interface PivotTableProps {
   rows: JiraStatRow[];
@@ -19,13 +20,6 @@ const METRICS: { key: MetricKey; label: string }[] = [
   { key: "commentsCount", label: "Comments" },
   { key: "timeLoggedSeconds", label: "Time Logged" },
 ];
-
-function formatTime(seconds: number): string {
-  if (seconds === 0) return "—";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
 
 function formatValue(key: MetricKey, value: number): string {
   if (key === "timeLoggedSeconds") return formatTime(value);

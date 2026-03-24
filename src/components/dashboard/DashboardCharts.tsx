@@ -14,15 +14,11 @@ import {
   ZAxis,
 } from "recharts";
 import type { JiraStatRow } from "@/types/jira";
+import { formatTimeDecimal as formatTime } from "@/lib/utils";
 import { useMemo, memo } from "react";
 
 interface ChartsProps {
   rows: JiraStatRow[];
-}
-
-function formatTime(seconds: number): string {
-  const hours = Math.round((seconds / 3600) * 10) / 10;
-  return `${hours}h`;
 }
 
 const CHART_COLORS = [
