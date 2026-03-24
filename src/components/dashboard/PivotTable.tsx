@@ -113,13 +113,17 @@ export function PivotTable({ rows, users, sprints }: PivotTableProps) {
   };
 
   const exportCsv = () => {
-    const header = ["Sprint", ...displayUsers, "Total"].join(",");
-    const dataRows = displaySprints.map((sprint) => {
-      const vals = displayUsers.map((user) => lookup[sprint]?.[user]?.[selectedMetric] || 0);
-      return [sprint, ...vals, rowTotals[sprint]].join(",");
-    });
-    const totalRow = ["Total", ...displayUsers.map((u) => columnTotals[u]), grandTotal].join(",");
-    const csv = [header, ...dataRows, totalRow].join("\n");
+    let csv = "Sprint," + displayUsers.join(",") + ",Total\n";
+    for (let i = 0; i < displaySprints.length; i++) {
+      const sprint = displaySprints[i];
+      csv += sprint;
+      for (let j = 0; j < displayUsers.length; j++) {
+        csv += "," + (lookup[sprint]?.[displayUsers[j]]?.[selectedMetric] || 0);
+      }
+      csv += "," + rowTotals[sprint] + "\n";
+    }
+    csv += "Total," + displayUsers.map((u) => columnTotals[u]).join(",") + "," + grandTotal;
+
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
