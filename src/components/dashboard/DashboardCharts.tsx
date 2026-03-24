@@ -149,6 +149,25 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
       .sort((a, b) => b.ratio - a.ratio);
   }, [userAggregates]);
 
+  // Sprint Delivery Status: status breakdown per sprint (PO view)
+  const sprintStatusData = useMemo(() => {
+    const sprintMap: Record<string, Record<string, number>> = {};
+    const allStatuses = new Set<string>();
+    for (const r of rows) {
+      if (!sprintMap[r.sprint]) sprintMap[r.sprint] = {};
+      const count = r.issuesCreated + r.issuesAssigned;
+      if (count > 0) {
+        sprintMap[r.sprint][r.status] = (sprintMap[r.sprint][r.status] || 0) + count;
+        allStatuses.add(r.status);
+      }
+    }
+    const statusList = Array.from(allStatuses).sort();
+    const data = Object.entries(sprintMap)
+      .map(([sprint, statuses]) => ({ sprint, ...statuses }))
+      .sort((a, b) => a.sprint.localeCompare(b.sprint, undefined, { numeric: true }));
+    return { data, statusList };
+  }, [rows]);
+
   const chartCardClass =
     "bg-card border border-border rounded-lg p-4 shadow-sm";
 
