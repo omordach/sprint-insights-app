@@ -309,6 +309,28 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Sprint Delivery Status — PO View */}
+      <div className={`${chartCardClass} lg:col-span-2 xl:col-span-3`}>
+        <h3 className="text-sm font-display font-semibold text-card-foreground mb-1">
+          Sprint Delivery Status
+        </h3>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Issue status distribution per sprint — track delivery progress &amp; bottlenecks
+        </p>
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart data={sprintStatusData.data} margin={{ top: 8, right: 20, bottom: 30, left: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="sprint" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" interval={0} />
+            <YAxis tick={{ fontSize: 11 }} label={{ value: "Issues", angle: -90, position: "insideLeft", fontSize: 10 }} />
+            <Tooltip />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            {sprintStatusData.statusList.map((status, i) => (
+              <Bar key={status} dataKey={status} stackId="status" fill={CHART_COLORS[i % CHART_COLORS.length]} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 });
