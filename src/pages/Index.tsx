@@ -39,6 +39,7 @@ const Index = () => {
               onClick={() => refetch()}
               disabled={isFetching}
               className="h-8"
+              aria-label="Refresh Jira data"
             >
               <RefreshCw className={`h-3 w-3 mr-1 ${isFetching ? "animate-spin" : ""}`} />
               Refresh
