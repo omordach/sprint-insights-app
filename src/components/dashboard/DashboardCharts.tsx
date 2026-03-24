@@ -12,6 +12,7 @@ import {
   ScatterChart,
   Scatter,
   ZAxis,
+  Legend,
 } from "recharts";
 import type { JiraStatRow } from "@/types/jira";
 import { formatTimeDecimal as formatTime } from "@/lib/utils";
@@ -147,6 +148,25 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
       }))
       .sort((a, b) => b.ratio - a.ratio);
   }, [userAggregates]);
+
+  // Sprint Delivery Status: status breakdown per sprint (PO view)
+  const sprintStatusData = useMemo(() => {
+    const sprintMap: Record<string, Record<string, number>> = {};
+    const allStatuses = new Set<string>();
+    for (const r of rows) {
+      if (!sprintMap[r.sprint]) sprintMap[r.sprint] = {};
+      const count = r.issuesCreated + r.issuesAssigned;
+      if (count > 0) {
+        sprintMap[r.sprint][r.status] = (sprintMap[r.sprint][r.status] || 0) + count;
+        allStatuses.add(r.status);
+      }
+    }
+    const statusList = Array.from(allStatuses).sort();
+    const data = Object.entries(sprintMap)
+      .map(([sprint, statuses]) => ({ sprint, ...statuses }))
+      .sort((a, b) => a.sprint.localeCompare(b.sprint, undefined, { numeric: true }));
+    return { data, statusList };
+  }, [rows]);
 
   const chartCardClass =
     "bg-card border border-border rounded-lg p-4 shadow-sm";
@@ -286,6 +306,28 @@ export const DashboardCharts = memo(function DashboardCharts({ rows }: ChartsPro
             <YAxis type="category" dataKey="user" width={120} tick={{ fontSize: 10 }} />
             <Tooltip formatter={(v: number) => `${v} comments per issue`} />
             <Bar dataKey="ratio" fill={CHART_COLORS[5]} radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Sprint Delivery Status — PO View */}
+      <div className={`${chartCardClass} lg:col-span-2 xl:col-span-3`}>
+        <h3 className="text-sm font-display font-semibold text-card-foreground mb-1">
+          Sprint Delivery Status
+        </h3>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Issue status distribution per sprint — track delivery progress &amp; bottlenecks
+        </p>
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart data={sprintStatusData.data} margin={{ top: 8, right: 20, bottom: 30, left: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="sprint" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" interval={0} />
+            <YAxis tick={{ fontSize: 11 }} label={{ value: "Issues", angle: -90, position: "insideLeft", fontSize: 10 }} />
+            <Tooltip />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            {sprintStatusData.statusList.map((status, i) => (
+              <Bar key={status} dataKey={status} stackId="status" fill={CHART_COLORS[i % CHART_COLORS.length]} />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </div>
